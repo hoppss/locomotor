@@ -31,6 +31,20 @@ public:
       create_subscription<geometry_msgs::msg::PoseStamped>(
       "/goal_pose", 10,
       std::bind(&Locomotor::topic_callback, this, std::placeholders::_1));
+
+
+    g_timer =
+      create_wall_timer(
+      std::chrono::milliseconds(1000), std::bind(
+        &Locomotor::planLoopCallback,
+        this));
+    g_timer->cancel();
+
+    l_timer = create_wall_timer(
+      std::chrono::milliseconds(250), std::bind(
+        &Locomotor::controlLoopCallback,
+        this));
+    l_timer->cancel();
   }
 
   ~Locomotor()
@@ -51,13 +65,7 @@ public:
     RCLCPP_INFO(get_logger(), "goal receive! start");
     g_cnt = 0;
     l_cnt = 0;
-    if (!g_timer) {
-      g_timer =
-        create_wall_timer(
-        std::chrono::milliseconds(1000), std::bind(
-          &Locomotor::planLoopCallback,
-          this));
-    }
+    g_timer->reset();
   }
 
   void planLoopCallback()
@@ -66,12 +74,12 @@ public:
       g_ex, l_ex, std::bind(&Locomotor::onNewGlobalPlan, this),
       std::bind(&Locomotor::onGlobalPlanningException, this));
   }
+
   void controlLoopCallback()
   {
     requestLocalPlan(
       g_ex, l_ex, std::bind(&Locomotor::onNewLocalPlan, this),
       std::bind(&Locomotor::onLocalPlanningException, this));
-
   }
 
   void requestGlobalPlan(
@@ -104,19 +112,11 @@ public:
       if (!g_timer->is_canceled()) {
         std::cout << "g_timer canceled, but ??" << std::endl;
       }
-
-      if (g_timer) {
-        std::cout << "GP FINISH BUT g-timer pointer is true" << std::endl;
-      }
     }
 
-
-    if (!l_timer) {
-      std::cout << "Create Local Timer" << std::endl;
-      l_timer = create_wall_timer(
-        std::chrono::milliseconds(250), std::bind(
-          &Locomotor::controlLoopCallback,
-          this));
+    if (l_timer->is_canceled()) {
+      std::cout << "local timer start!" << std::endl;
+      l_timer->reset();
     }
   }
 
@@ -148,7 +148,7 @@ public:
     if (l_cnt > 50) {
       std::cout << "LP FINISH " << l_cnt << std::endl;
       l_timer->cancel();
-      l_timer.reset();   // whey EXIT ??
+      // l_timer.reset();   // whey EXIT ??
     }
   }
 
