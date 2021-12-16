@@ -50,7 +50,7 @@ public:
       cv_.wait(
         lock, [this]() {
           if (terminated_) {
-            return true;
+            return true;  // used for ctrl-c exit
           } else if (queue_.empty()) {
             return false;
           } else {
