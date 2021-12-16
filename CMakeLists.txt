@@ -58,8 +58,11 @@ set(dependencies
 add_executable(locomotor src/Locomotor.cpp)
 ament_target_dependencies(locomotor ${dependencies})
 
+add_executable(timer src/timer.cpp)
+ament_target_dependencies(timer ${dependencies})
+
 install(TARGETS
-        locomotor
+        locomotor timer
         DESTINATION lib/${PROJECT_NAME})
 
 ament_package()
