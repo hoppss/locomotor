@@ -18,15 +18,15 @@ using Function = std::function<void ()>;
 class Executor
 {
 public:
-  Executor()
-  : terminated_(false)
+  Executor(const std::string & _name)
+  : name(_name), terminated_(false)
   {
     thread_ = std::make_shared<std::thread>(&Executor::spin, this);
   }
 
   ~Executor()
   {
-    std::cout << "~Executor" << std::endl;
+    std::cout << "~" << name << "_Executor" << std::endl;
     terminated_ = true;
     cv_.notify_one();
     if (thread_) {
@@ -58,13 +58,14 @@ public:
           }
         });
 
-      if(terminated_) continue;
+      if (terminated_) {continue;}
+      std::cout << "****" << name << " " << queue_.size() << std::endl;
 
       auto & t = queue_.front();
       t();
       queue_.pop_front();
       lock.unlock();
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     std::cout << "SPINTHREADEXIT" << std::endl;
@@ -77,6 +78,8 @@ private:
   std::mutex mutex_;
   std::condition_variable cv_;
   std::shared_ptr<std::thread> thread_;
+
+  std::string name;
 };
 
 void one(int i)

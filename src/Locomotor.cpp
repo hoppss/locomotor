@@ -22,7 +22,7 @@ class Locomotor : public rclcpp::Node
 {
 public:
   Locomotor()
-  : Node("locomotor")
+  : Node("locomotor"), g_ex("global"), l_ex("local")
   {
     g_cnt = 0;
     l_cnt = 0;
@@ -31,7 +31,6 @@ public:
       create_subscription<geometry_msgs::msg::PoseStamped>(
       "/goal_pose", 10,
       std::bind(&Locomotor::topic_callback, this, std::placeholders::_1));
-
 
     g_timer =
       create_wall_timer(
